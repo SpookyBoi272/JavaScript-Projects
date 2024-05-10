@@ -1,9 +1,36 @@
-.card{
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  height: 20vh;
-  width: 20vh;
-  border: 2px solid gray;
-  border-radius: 15%;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+*{
+  margin: 0px;
+  padding: 0px;
+  background-color: black;
+}
+
+.cards{
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-style: normal;
   display: grid;
-  font-size: 11px;
+  grid: auto-flow / 1fr 1fr 1fr 1fr 1fr;
+}
+
+.card{
+  margin: 5px;
+  padding: 2px;
+  height: 30vh;
+  border: 2px solid gray;
+  border-radius: 2%;
+  overflow: hidden;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.841);
+}
+
+.card>h3{
+  font-size: 10px;
+}
+
+.card p{
+  padding-top: 2vh;
+  color: gray;
+  font-size: 8px;
 }

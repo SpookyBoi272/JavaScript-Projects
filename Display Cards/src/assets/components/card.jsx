@@ -4,8 +4,8 @@ import './card.css'
 function card(props) {
   return (
     <div className='card'>
-      <div>{props.title}</div>
-      <div>{props.desc}</div>
+      <h3>{props.title}</h3>
+      <p>{props.desc}</p>
     </div>
   )
 }
