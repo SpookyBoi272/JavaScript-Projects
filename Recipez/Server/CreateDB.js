@@ -12,7 +12,7 @@ app.get("/", (req,res)=>{
 // MongoDB connection URI
 const mongoURI = 'mongodb://localhost:27017';
 const dbName = 'project';
-const collectionName = 'recipies';
+const collectionName = 'recipes';
 
 // Connect to MongoDB
 async function connectToMongo() {
@@ -27,7 +27,7 @@ app.get('/data', async (req, res) => {
     
     try {
         // Define the path to your CSV file
-        const csvFilePath = './Data/RecipeNLG_dataset.csv';
+        const csvFilePath = 'C:/Users/niran/Documents/Assets/JavaScript-Projects/Recipez/Server/Data/RecipeNLG_dataset.csv';
 
         // Connect to MongoDB
         const collection = await connectToMongo();
@@ -37,12 +37,11 @@ app.get('/data', async (req, res) => {
 
         // Initialize PapaParse with options
         const parseConfig = {
+            // header: true,
             // Set to true to parse the CSV as a stream
             streaming: true,
-            // Specify other PapaParse options as needed
-            // For example:
-            // header: true, // If the CSV file has a header row
-            // delimiter: ',', // The delimiter used in the CSV file
+            //Auto convert Numeric Values
+            dynamicTyping: true
         };
 
         // Inside the route handler for feeding CSV data into MongoDB
