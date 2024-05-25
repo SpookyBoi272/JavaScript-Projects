@@ -7,50 +7,57 @@ const NERMod = require("./Models/IngNERSchema");
 const DirectionMod = require("./Models/DirSchema");
 
 const mongoURI = 'mongodb://localhost:27017';
-const dbName = 'savorySpark';
-mongoose.connect(`${mongoURI}/${dbName}`, { useNewUrlParser: true, useUnifiedTopology: true });
+const dbName = 'breadLoaf';
+mongoose.connect(`${mongoURI}/${dbName}`);
 
 const processChunk = async (results) => {
-    for (const data of results.data) {
-        const ingredientPromises = JSON.parse(data.ingredients).map(async (ingredient) => {
-            const Ingredient = new IngredientMod({ name: ingredient });
-            const savedIngredient = await Ingredient.save();
-            return savedIngredient._id;
-        });
+    console.log(results)
+    try {
+        for (const data of results.data) {
+            const ingredientPromises = JSON.parse(data.ingredients).map(async (ingredient) => {
+                const Ingredient = new IngredientMod({ name: ingredient });
+                const savedIngredient = await Ingredient.save();
+                return savedIngredient._id;
+            });
 
-        const directionPromises = JSON.parse(data.directions).map(async (direction) => {
-            const Direction = new DirectionMod({ step: direction });
-            const savedDirection = await Direction.save();
-            return savedDirection._id;
-        });
+            const directionPromises = JSON.parse(data.directions).map(async (direction) => {
+                const Direction = new DirectionMod({ step: direction });
+                const savedDirection = await Direction.save();
+                return savedDirection._id;
+            });
 
-        const NERPromises = JSON.parse(data.NER).map(async (ner) => {
-            const NER = new NERMod({ name: ner });
-            const savedNER = await NER.save();
-            return savedNER._id;
-        });
+            const NERPromises = JSON.parse(data.NER).map(async (ner) => {
+                const NER = new NERMod({ name: ner });
+                const savedNER = await NER.save();
+                return savedNER._id;
+            });
 
-        const ingredientIDs = await Promise.all(ingredientPromises);
-        const directionIDs = await Promise.all(directionPromises);
-        const NERIDs = await Promise.all(NERPromises);
+            const ingredientIDs = await Promise.all(ingredientPromises);
+            const directionIDs = await Promise.all(directionPromises);
+            const NERIDs = await Promise.all(NERPromises);
 
-        const recipe = new RecipeMod({
-            id: data.id,
-            title: data.title,
-            ingredients: ingredientIDs,
-            directions: directionIDs,
-            link: data.link,
-            source: data.source,
-            NER: NERIDs
-        });
+            const recipe = new RecipeMod({
+                id: data.id,
+                title: data.title,
+                ingredients: ingredientIDs,
+                directions: directionIDs,
+                link: data.link,
+                source: data.source,
+                NER: NERIDs
+            });
 
-        await recipe.save();
-        console.log(`Saved recipe with ID: ${data.id}`);
+            await recipe.save();
+            console.log(`Saved recipe with ID: ${data.id}`);
+        }
+    } catch (error){
+        console.log("Error occured");
     }
 };
 
 try {
-    const csvFilePath = 'C:/Users/niran/Documents/Assets/JavaScript-Projects/Recipez/Server/Data/RecipeNLG_dataset.csv';
+    const csvFilePath = "C:/Users/niran/Downloads/eg.csv";
+    // const csvFilePath = "C:/Users/niran/Downloads/mightymerge.io__yk9wmgbe/RecipeNLG_dataset_1.csv";
+    // const csvFilePath = 'C:/Users/niran/Documents/Assets/JavaScript-Projects/Recipez/Server/Data/RecipeNLG_dataset.csv';
     const fileStream = fs.createReadStream(csvFilePath);
 
     const parseConfig = {

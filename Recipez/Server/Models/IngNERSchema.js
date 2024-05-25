@@ -5,4 +5,6 @@ const ingNERSchema = new mongoose.Schema({
 });
 const IngredientNER = mongoose.model('IngNER', ingNERSchema);
 
+ingNERSchema.index({name:'text'});
+
 module.exports = IngredientNER;
