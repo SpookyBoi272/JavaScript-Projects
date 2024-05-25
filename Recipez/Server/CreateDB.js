@@ -10,12 +10,51 @@ const mongoURI = 'mongodb://localhost:27017';
 const dbName = 'breadLoaf';
 mongoose.connect(`${mongoURI}/${dbName}`);
 
+const feedData = async (data) => {
+
+    const ingredientPromises = await JSON.parse(data.ingredients).map(async (ingredient, index) => {
+        // console.log(ingredient, index);
+        Ingredient = new IngredientMod({ name: ingredient })
+        await Ingredient.save()
+        return Ingredient._id;
+    });
+
+    const directionPromises = await JSON.parse(data.directions).map(async (direction, index) => {
+        // console.log(direction, index);
+        Direction = new DirectionMod({ step: direction })
+        await Direction.save();
+        return Direction._id;
+    });
+
+    const NERPromises = await JSON.parse(data.NER).map(async (ner, index) => {
+        // console.log(ner, index);
+        NER = new NERMod({ name: ner })
+        await NER.save();
+        return NER._id;
+    });
+
+    ingredientIDs = await Promise.all(ingredientPromises);
+    directionIDS = await Promise.all(directionPromises);
+    NERIDs = await Promise.all(NERPromises);
+
+    recipe = new RecipeMod({
+        id: data.id,
+        title: data.title,
+        ingredients: ingredientIDs,
+        directions: directionIDS,
+        link: data.link,
+        source: data.source,
+        NER: NERIDs
+    });
+    console.log("saving recipie now")
+    await recipe.save();
+}
+
 
 
 try {
     // Define the path to your CSV file
-    // const csvFilePath = 'C:/Users/niran/Documents/Assets/JavaScript-Projects/Recipez/Server/Data/RecipeNLG_dataset.csv';
-    const csvFilePath = 'C:/Users/niran/Downloads/eg.csv';
+    const csvFilePath = 'C:/Users/niran/Documents/Assets/JavaScript-Projects/Recipez/Server/Data/RecipeNLG_dataset.csv';
 
     // Create a read stream for the CSV file
     const fileStream = fs.createReadStream(csvFilePath);
@@ -26,54 +65,28 @@ try {
         // Set to true to parse the CSV as a stream
         streaming: true,
         //Auto convert Numeric Values
-        dynamicTyping: true
+        dynamicTyping: true,
+
+        chunkSize: 100000
     };
 
     Papa.parse(fileStream, {
         ...parseConfig,
-        step: async (result) => {
-            data = result.data;
-            ingredientIDs = [];
-            directionIDS = [];
-            NERIDs = [];
-
-            await JSON.parse(data.ingredients).forEach((ingredient, index) => {
-                Ingredient = new IngredientMod({ name: ingredient })
-                Ingredient.save().then((doc) => {
-                ingredientIDs[index] = doc._id;
+        step: (result, parser) => {
+            parser.pause(); // Pause the parser to handle one row at a time
+            feedData(result.data)
+                .then(() => {
+                    parser.resume(); // Resume the parser after the current row is processed
                 })
-            });
-
-            await JSON.parse(data.directions).forEach((direction, index) => {
-                Direction = new DirectionMod({ step: direction })
-                Direction.save().then((doc) => {
-                    directionIDS[index] = doc._id;
-                })
-            });
-
-            await JSON.parse(data.NER).forEach((ner, index) => {
-                NER = new NERMod({ name: ner })
-                NER.save().then((doc) => {
-                    NERIDs[index] = doc._id;
-                })
-            });
-
-            recipe = new RecipeMod({
-                id: data.id,
-                title: data.title,
-                ingredients: ingredientIDs,
-                directions: directionIDS,
-                link: data.link,
-                source: data.source,
-                NER: NERIDs
-            })
-            recipe.save();
+                .catch((err) => {
+                    console.error('Error processing row:', err);
+                    parser.resume();
+                });
         },
         complete: () => {
             console.log('CSV data has been successfully Parsed');
         },
         error: (err) => {
-            // Handle parsing errors
             console.error('Parsing error:', err);
         }
     });
