@@ -1,36 +1,39 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const recipeModel = require("./Models/RecipeSchema.js")
+const IngredientMod = require("./Models/IngSchema");
+const NERMod = require("./Models/IngNERSchema");
+const DirectionMod = require("./Models/DirSchema");
+const path = require('path')
 
 const app = express();
 const port = 3000;
 const ver = "v1";
+mongoose.connect("mongodb://127.0.0.1:27017/savorySpark");
 
-app.get("/",(req,res)=>{
-    res.sendFile("C:/Users/niran/Documents/Assets/JavaScript-Projects/Recipez/Server/Views/apiRef.html");
-});
+app.use("/",express.static(path.join(__dirname, 'public')));
 
-app.get(`/${ver}`, (req, res) => {
-  res.send('Hello World!');
-});
-
-app.get(`/${ver}/getPg/1`,(req,res)=>{
-  getPage(2).then(result=>{
-    console.log(result);
-    res.send(result);
+app.get(`/${ver}/getPg/:page`, (req, res) => {
+  const page = parseInt(req.params.page, 10) || 1;
+  getPage(page).then(result => {
+    res.json(result);
   })
 })
+
+app.get(`/${ver}/`)
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 });
 
 
-const getPage = async (pgNo)=>{
-  await mongoose.connect("mongodb://127.0.0.1:27017");
-  startID = (pgNo-1)*30;
-  console.log(startID)
-  const result = await recipeModel.find({})
-    .where("id").gt(startID).lt(startID+30).exec();
+const getPage = async (pgNo) => {
+  const pageSize = 20;
+  const skip = (pgNo - 1) * pageSize;
+  const result = await recipeModel.find().skip(skip).limit(pageSize)
+  .populate('ingredients')
+  .populate('directions')
+  .populate('NER')
+  .exec();
   return result;
 }
