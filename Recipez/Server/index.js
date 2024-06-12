@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require('cors');
 const recipeModel = require("./Models/RecipeSchema.js")
 const IngredientMod = require("./Models/IngSchema");
 const NERMod = require("./Models/IngNERSchema");
@@ -11,7 +12,9 @@ const port = 3000;
 const ver = "v1";
 mongoose.connect("mongodb://127.0.0.1:27017/savorySpark");
 
+
 app.use("/", express.static(path.join(__dirname, 'public')));
+app.use(cors());
 
 app.get(`/${ver}/getPg/:page`, (req, res) => {
   const page = parseInt(req.params.page, 10) || 1;
