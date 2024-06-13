@@ -43,7 +43,7 @@ app.listen(port, () => {
 
 
 const getPage = async (pgNo) => {
-  const pageSize = 20;
+  const pageSize = 21;
   const skip = (pgNo - 1) * pageSize;
   const result = await recipeModel.find().skip(skip).limit(pageSize)
     .populate('ingredients')
