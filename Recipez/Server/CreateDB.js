@@ -8,10 +8,12 @@ const DirectionMod = require("./Models/DirSchema");
 
 const mongoURI = 'mongodb://localhost:27017';
 const dbName = 'breadLoaf';
-mongoose.connect(`${mongoURI}/${dbName}`);
+
+mongoose.connect(`${mongoURI}/${dbName}`)
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
 const processChunk = async (results) => {
-    console.log(results)
     try {
         for (const data of results.data) {
             const ingredientPromises = JSON.parse(data.ingredients).map(async (ingredient) => {
@@ -49,15 +51,20 @@ const processChunk = async (results) => {
             await recipe.save();
             console.log(`Saved recipe with ID: ${data.id}`);
         }
-    } catch (error){
-        console.log("Error occured");
+
+        // Manually trigger garbage collection if available
+        if (global.gc) {
+            global.gc();
+            console.log("Cleared")
+        }
+
+    } catch (error) {
+        console.error("Error occurred while processing chunk:", error);
     }
 };
 
 try {
-    const csvFilePath = "C:/Users/niran/Downloads/eg.csv";
-    // const csvFilePath = "C:/Users/niran/Downloads/mightymerge.io__yk9wmgbe/RecipeNLG_dataset_1.csv";
-    // const csvFilePath = 'C:/Users/niran/Documents/Assets/JavaScript-Projects/Recipez/Server/Data/RecipeNLG_dataset.csv';
+    const csvFilePath = "C:/Users/niran/Documents/Assets/JavaScript-Projects/Recipez/Server/Data/RecipeNLG_dataset.csv";
     const fileStream = fs.createReadStream(csvFilePath);
 
     const parseConfig = {
@@ -69,8 +76,10 @@ try {
             await processChunk(results);
             parser.resume(); // Resume the parser after processing the chunk
         },
-        complete: () => {
+        complete: async () => {
             console.log('CSV data has been successfully parsed.');
+            // Close Mongoose connection
+            await mongoose.disconnect();
         },
         error: (err) => {
             console.error('Parsing error:', err);
@@ -80,5 +89,5 @@ try {
     Papa.parse(fileStream, parseConfig);
 
 } catch (error) {
-    console.error('MongoDB error:', error);
+    console.error('Error:', error);
 }
